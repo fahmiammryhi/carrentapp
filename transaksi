@@ -1,0 +1,118 @@
+import React, { useState } from 'react';
+import 'firebase/firestore';
+import { View, StyleSheet, Text, Button, Alert, Image } from "react-native";
+import { TextInput } from "react-native-gesture-handler";
+import firebase from '../database/firebase';
+
+Transaksi = ({navigation}) =>{
+
+  const [renter, setrenter] = useState('');
+  const [phone, setphone] = useState('');
+  const [address, setaddress] = useState('');
+  const [car, setcar] = useState('');
+  const [error, setError] = useState('');
+
+  const handleBook = () => {
+    //cek email pada database
+    const db = firebase.firestore();
+    db.collection('book')
+        .where('renter', '==', renter)
+        .get()
+        .then((snapshot) => {
+            if (!snapshot.empty){
+                Alert.alert('Enter details to book !');
+                return;
+            }
+
+            //jika email belum terdaftar, add data
+            db.collection('book')
+                .add({
+                    renter,
+                    phone,
+                    address,
+                    car,
+                })
+                .then(() => {
+                    //jika login berhasil maka masuk halaman login
+                    navigation.navigate('Login')
+                })
+                //jika gagal add data akan muncul error
+                .catch((error) => {
+                    setError(error.message);
+                })
+        })
+        .catch((error) => {
+            //jika mengambil data gagal, akan tampil error
+            setError(error.message);
+        })
+};
+
+return(
+    <View style={styles.container}>
+        <Image style={styles.image}source={require('../assets/logoppb.png')} alt="logoSignup"/> 
+        <TextInput
+            style={styles.inputStyle}
+            placeholder="Name"
+            value={renter}
+            onChangeText={setrenter}
+        />
+        <TextInput
+            style={styles.inputStyle}
+            placeholder="Phone"
+            value={phone}
+            onChangeText={setphone}
+        />
+        <TextInput
+            style={styles.inputStyle}
+            placeholder="Address"
+            value={address}
+            onChangeText={setaddress}
+        />
+        <TextInput
+            style={styles.inputStyle}
+            placeholder="Car"
+            value={car}
+            onChangeText={setcar}
+            secureTextEntry
+        />
+        <Button
+            color="#363636"
+            title="Book Now"
+            onPress={handleBook}
+        />
+        {error ? <Text>{error}</Text> : null}
+    </View>
+)
+}
+
+const styles = StyleSheet.create({
+container: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    padding: 35,
+    backgroundColor: '#fff'
+  },
+  inputStyle: {
+    width: '100%',
+    marginBottom: 15,
+    paddingBottom: 15,
+    alignSelf: "center",
+    borderColor: "#ccc",
+    borderBottomWidth: 1
+  },
+  loginText: {
+    color: '#363636',
+    marginTop: 25,
+    textAlign: 'center'
+  },
+  image:{
+        width: 150,
+        height: 150,
+        marginBottom: 8,
+        alignSelf: "center",
+  }
+})
+
+export default Transaksi;
